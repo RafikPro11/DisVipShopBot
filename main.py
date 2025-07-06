@@ -104,7 +104,7 @@ class ConfirmPurchaseView(View):
             view=view
         )
         await interaction.response.send_message(
-            f"📨 تم إرسال طلب الشراء بنجاح! يرجى الانتظار لحين موافقة الإدارة. يمكنك متابعة الحالة في: {channel.mention}",
+            f"📬 تم إرسال طلب الشراء بنجاح! يرجى الانتظار لحين موافقة الإدارة. يمكنك متابعة الحالة في: {channel.mention}",
             ephemeral=True
         )
 
@@ -113,7 +113,7 @@ async def vip_shop(interaction: discord.Interaction):
     desc = "\n".join([
         f"{emoji} **{name}**: `{price}M` كريدت"
         for name, (price, _) in VIP_ROLES.items()
-        for emoji in [name.split("「")[0]]
+        for emoji in [name.split("\u300c")[0]]
     ])
     embed = discord.Embed(
         title="🏆 قائمة الرتب المدفوعة",
@@ -121,9 +121,7 @@ async def vip_shop(interaction: discord.Interaction):
         color=discord.Color.blurple()
     )
     view = VIPSelectView()
-    msg = await interaction.channel.send(embed=embed, view=view)
-    bot.latest_shop_message = (msg.channel.id, msg.id, view)
-    await interaction.response.send_message("📬 تم إرسال المتجر!", ephemeral=True)
+    await interaction.response.send_message(embed=embed, view=view)
 
 @tasks.loop(minutes=10)
 async def auto_cleanup_channels():
