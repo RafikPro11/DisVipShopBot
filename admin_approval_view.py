@@ -13,8 +13,8 @@ class AdminApprovalView(View):
         self.send_log = send_log
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        seller_role_name = "🛍️・「البائع」"
-        seller_role = discord.utils.get(interaction.guild.roles, name=seller_role_name)
+        seller_role_id = 123456789012345678  # ← ضع هنا ID رتبة البائع
+        seller_role = interaction.guild.get_role(seller_role_id)
         if seller_role not in interaction.user.roles:
             await interaction.response.send_message("❌ هذا الزر مخصص فقط للأعضاء الحاصلين على رتبة البائع.", ephemeral=True)
             return False
