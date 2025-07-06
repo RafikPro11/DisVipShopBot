@@ -3,6 +3,9 @@ from discord.ui import View, Button
 import asyncio
 from datetime import datetime
 
+# اكتب هنا معرفات الرتب المسموح لها فقط بالبيع
+ALLOWED_ROLE_IDS = [1391503149365465259]  # استبدلها بالرتب الصحيحة
+
 class AdminApprovalView(View):
     def __init__(self, role_name, user_id, channel_id, VIP_ROLES, send_log):
         super().__init__(timeout=None)
@@ -13,8 +16,10 @@ class AdminApprovalView(View):
         self.send_log = send_log
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if not interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("❌ فقط من يملكون صلاحيات الإدارة يمكنهم تنفيذ ذلك.", ephemeral=True)
+        # يمنع حتى الإداريين من استخدام الأزرار إن لم تكن لديهم رتبة مسموح بها
+        user_roles = [role.id for role in interaction.user.roles]
+        if not any(role_id in ALLOWED_ROLE_IDS for role_id in user_roles):
+            await interaction.response.send_message("❌ ليس لديك الصلاحية لتنفيذ هذا الإجراء. فقط الرتب المخصصة يمكنها الموافقة أو الرفض.", ephemeral=True)
             return False
         return True
 
@@ -99,4 +104,5 @@ class AdminApprovalView(View):
         embed.set_footer(text="تاريخ الطلب • ستُغلق القناة تلقائيًا بعد المعالجة")
 
         await channel.send(embed=embed, view=self)
+
 
