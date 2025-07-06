@@ -7,12 +7,25 @@ import asyncio
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from admin_approval_view import AdminApprovalView
+from flask import Flask, send_from_directory
+import threading
 
 # تحميل المتغيرات البيئية
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 PAID_CATEGORY_ID = int(os.getenv("PAID_VIP_CATEGORY_ID"))
 GUILD_ID = int(os.getenv("GUILD_ID"))
+
+app = Flask(__name__, static_folder='public')
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080)
+
+threading.Thread(target=run_flask, daemon=True).start()
 
 # إعداد صلاحيات الديسكورد
 intents = discord.Intents.default()
