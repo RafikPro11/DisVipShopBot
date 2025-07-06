@@ -5,14 +5,31 @@ from discord.ui import View, Button, Select
 import os
 import asyncio
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from admin_approval_view import AdminApprovalView
+from flask import Flask
+import threading
 
+# تحميل المتغيرات البيئية
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 PAID_CATEGORY_ID = int(os.getenv("PAID_VIP_CATEGORY_ID"))
-GUILD_ID = int(os.getenv("GUILD_ID"))  # أضف هذا إلى ملف .env
+GUILD_ID = int(os.getenv("GUILD_ID"))
 
+# إعداد Flask لتجنب مشاكل Render
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "<h1>✅ البوت يعمل الآن!</h1><p>بوت متجر VIP جاهز للعمل!</p>"
+
+def run_web():
+    app.run(host="0.0.0.0", port=8080)
+
+web_thread = threading.Thread(target=run_web)
+web_thread.start()
+
+# إعداد صلاحيات الديسكورد
 intents = discord.Intents.default()
 intents.guilds = True
 intents.members = True
@@ -89,23 +106,20 @@ class ConfirmPurchaseView(View):
     async def handle_confirmation(self, interaction: discord.Interaction):
         guild = interaction.guild
         member = interaction.user
-
         category = guild.get_channel(PAID_CATEGORY_ID)
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
             member: discord.PermissionOverwrite(view_channel=True, send_messages=False, read_message_history=True),
         }
         channel = await guild.create_text_channel(name=f"طلب-{member.name}", category=category, overwrites=overwrites)
-        bot.channel_creation_times[channel.id] = datetime.utcnow()
-
+        bot.channel_creation_times[channel.id] = datetime.now(timezone.utc)
         view = AdminApprovalView(self.role_name, member.id, channel.id, VIP_ROLES, send_log)
         await channel.send(
-            f"📅 طلب جديد من {member.mention} لشراء رتبة **{self.role_name}**. يرجى موافقة الإدارة:",
+            f"📥 طلب جديد من {member.mention} لشراء رتبة **{self.role_name}**. يرجى موافقة الإدارة:",
             view=view
         )
-
         await interaction.response.send_message(
-            f"📬 تم إرسال طلب الشراء بنجاح! يرجى الانتظار لحين موافقة الإدارة. يمكنك متابعة الحالة في: {channel.mention}",
+            f"📨 تم إرسال طلب الشراء بنجاح! يرجى الانتظار لحين موافقة الإدارة. يمكنك متابعة الحالة في: {channel.mention}",
             ephemeral=True
         )
 
@@ -116,13 +130,11 @@ async def vip_shop(interaction: discord.Interaction):
         for name, (price, _) in VIP_ROLES.items()
         for emoji in [name.split("「")[0]]
     ])
-
     embed = discord.Embed(
         title="🏆 قائمة الرتب المدفوعة",
         description=desc + "\n\nاختر رتبتك من القائمة أدناه ثم اضغط على زر الشراء لإكمال العملية.",
         color=discord.Color.blurple()
     )
-
     view = VIPSelectView()
     msg = await interaction.channel.send(embed=embed, view=view)
     bot.latest_shop_message = (msg.channel.id, msg.id, view)
@@ -130,7 +142,7 @@ async def vip_shop(interaction: discord.Interaction):
 
 @tasks.loop(minutes=10)
 async def auto_cleanup_channels():
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for channel_id, created_at in list(bot.channel_creation_times.items()):
         if (now - created_at) > timedelta(hours=24):
             channel = bot.get_channel(channel_id)
@@ -149,4 +161,3 @@ async def on_ready():
     auto_cleanup_channels.start()
 
 bot.run(TOKEN)
-
