@@ -7,27 +7,12 @@ import asyncio
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from admin_approval_view import AdminApprovalView
-from flask import Flask
-import threading
 
 # تحميل المتغيرات البيئية
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 PAID_CATEGORY_ID = int(os.getenv("PAID_VIP_CATEGORY_ID"))
 GUILD_ID = int(os.getenv("GUILD_ID"))
-
-# إعداد Flask لتجنب مشاكل Render
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "<h1>✅ البوت يعمل الآن!</h1><p>بوت متجر VIP جاهز للعمل!</p>"
-
-def run_web():
-    app.run(host="0.0.0.0", port=8080)
-
-web_thread = threading.Thread(target=run_web)
-web_thread.start()
 
 # إعداد صلاحيات الديسكورد
 intents = discord.Intents.default()
@@ -115,7 +100,7 @@ class ConfirmPurchaseView(View):
         bot.channel_creation_times[channel.id] = datetime.now(timezone.utc)
         view = AdminApprovalView(self.role_name, member.id, channel.id, VIP_ROLES, send_log)
         await channel.send(
-            f"📥 طلب جديد من {member.mention} لشراء رتبة **{self.role_name}**. يرجى موافقة الإدارة:",
+            f"📅 طلب جديد من {member.mention} لشراء رتبة **{self.role_name}**. يرجى موافقة الإدارة:",
             view=view
         )
         await interaction.response.send_message(
