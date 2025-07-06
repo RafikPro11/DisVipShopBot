@@ -99,10 +99,14 @@ class ConfirmPurchaseView(View):
         channel = await guild.create_text_channel(name=f"طلب-{member.name}", category=category, overwrites=overwrites)
         bot.channel_creation_times[channel.id] = datetime.now(timezone.utc)
         view = AdminApprovalView(self.role_name, member.id, channel.id, VIP_ROLES, send_log)
-        await channel.send(
-            f"📅 طلب جديد من {member.mention} لشراء رتبة **{self.role_name}**. يرجى موافقة الإدارة:",
-            view=view
+        embed = discord.Embed(
+            title="📩 طلب شراء جديد",
+            description=f"🔔 المستخدم {member.mention} قام بطلب شراء الرتبة **{self.role_name}**\n\n📝 يرجى من الإدارة مراجعة الطلب واتخاذ الإجراء المناسب بالأسفل.",
+            color=discord.Color.gold()
         )
+        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_footer(text="DisVIP Shop System", icon_url=guild.icon.url if guild.icon else None)
+        await channel.send(embed=embed, view=view)
         await interaction.response.send_message(
             f"📬 تم إرسال طلب الشراء بنجاح! يرجى الانتظار لحين موافقة الإدارة. يمكنك متابعة الحالة في: {channel.mention}",
             ephemeral=True
@@ -144,3 +148,4 @@ async def on_ready():
     auto_cleanup_channels.start()
 
 bot.run(TOKEN)
+
