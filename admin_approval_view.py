@@ -36,11 +36,18 @@ class AdminApprovalView(View):
         await member.add_roles(role)
 
         embed = discord.Embed(
-            title="🎉 تم إكمال عملية الشراء!",
-            description=f"✅ تم منح الرتبة **{role.name}** إلى {member.mention} بنجاح.\n\nشكرًا لدعمك!",
-            color=discord.Color.green()
+            title="🎉 تهانينا!",
+            description=(
+                f"👤 **العضو:** {member.mention}\n"
+                f"🏅 **الرتبة:** {role.name}\n"
+                "\n✅ تم إكمال عملية الشراء بنجاح.\n"
+                "شكراً لدعمك! 💖"
+            ),
+            color=discord.Color.green(),
+            timestamp=datetime.utcnow()
         )
         embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_footer(text="تمت الموافقة بواسطة الإدارة")
 
         await interaction.channel.send(embed=embed)
         await self.send_log(guild, f"✅ تم بيع الرتبة {role.name} إلى {member.name}")
@@ -56,13 +63,17 @@ class AdminApprovalView(View):
         member = guild.get_member(self.user_id)
 
         embed = discord.Embed(
-            title="🚫 تم رفض الطلب",
-            description=f"تم رفض طلب شراء رتبة **{self.role_name}**.\nسيتم حذف القناة خلال 30 ثانية.",
-            color=discord.Color.red()
+            title="📛 تم رفض الطلب",
+            description=(
+                f"❌ تم رفض طلب شراء رتبة **{self.role_name}**.\n"
+                "سيتم حذف القناة تلقائياً خلال 30 ثانية."
+            ),
+            color=discord.Color.red(),
+            timestamp=datetime.utcnow()
         )
 
         if member:
-            embed.set_footer(text=f"المستخدم: {member.display_name}", icon_url=member.display_avatar.url)
+            embed.set_footer(text=f"العضو: {member.display_name}", icon_url=member.display_avatar.url)
 
         await interaction.channel.send(embed=embed)
         await self.send_log(guild, f"❌ تم رفض طلب {self.role_name} من المستخدم ID: {self.user_id}")
@@ -75,12 +86,17 @@ class AdminApprovalView(View):
     async def send_request_message(self, channel, member):
         color = discord.Color.gold() if "VIP" in self.role_name else discord.Color.blue()
         embed = discord.Embed(
-            title="📥 طلب شراء رتبة",
-            description=f"**العضو:** {member.mention}\n**الرتبة المطلوبة:** {self.role_name}\n\nيرجى من الإدارة اتخاذ الإجراء المناسب من خلال الأزرار أدناه.",
+            title="📬 طلب جديد لشراء رتبة",
+            description=(
+                f"👤 **العضو:** {member.mention}\n"
+                f"🔖 **الرتبة المطلوبة:** {self.role_name}\n\n"
+                "يرجى من الإدارة استخدام الأزرار أدناه للموافقة أو الرفض."
+            ),
             color=color,
             timestamp=datetime.utcnow()
         )
         embed.set_thumbnail(url=member.display_avatar.url)
-        embed.set_footer(text="تاريخ الطلب")
+        embed.set_footer(text="تاريخ الطلب • ستُغلق القناة تلقائيًا بعد المعالجة")
 
         await channel.send(embed=embed, view=self)
+
