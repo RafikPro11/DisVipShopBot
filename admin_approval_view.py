@@ -3,9 +3,6 @@ from discord.ui import View, Button
 import asyncio
 from datetime import datetime
 
-# اكتب هنا معرفات الرتب المسموح لها فقط بالبيع
-ALLOWED_ROLE_IDS = [1391503149365465259]  # استبدلها بالرتب الصحيحة
-
 class AdminApprovalView(View):
     def __init__(self, role_name, user_id, channel_id, VIP_ROLES, send_log):
         super().__init__(timeout=None)
@@ -16,10 +13,10 @@ class AdminApprovalView(View):
         self.send_log = send_log
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        # يمنع حتى الإداريين من استخدام الأزرار إن لم تكن لديهم رتبة مسموح بها
-        user_roles = [role.id for role in interaction.user.roles]
-        if not any(role_id in ALLOWED_ROLE_IDS for role_id in user_roles):
-            await interaction.response.send_message("❌ ليس لديك الصلاحية لتنفيذ هذا الإجراء. فقط الرتب المخصصة يمكنها الموافقة أو الرفض.", ephemeral=True)
+        seller_role_name = "🛍️・「البائع」"
+        seller_role = discord.utils.get(interaction.guild.roles, name=seller_role_name)
+        if seller_role not in interaction.user.roles:
+            await interaction.response.send_message("❌ هذا الزر مخصص فقط للأعضاء الحاصلين على رتبة البائع.", ephemeral=True)
             return False
         return True
 
@@ -68,7 +65,7 @@ class AdminApprovalView(View):
         member = guild.get_member(self.user_id)
 
         embed = discord.Embed(
-            title="📛 تم رفض الطلب",
+            title="📋 تم رفض الطلب",
             description=(
                 f"❌ تم رفض طلب شراء رتبة **{self.role_name}**.\n"
                 "سيتم حذف القناة تلقائياً خلال 30 ثانية."
@@ -90,6 +87,9 @@ class AdminApprovalView(View):
 
     async def send_request_message(self, channel, member):
         color = discord.Color.gold() if "VIP" in self.role_name else discord.Color.blue()
+        overwrite = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
+        await channel.set_permissions(member, overwrite=overwrite)
+
         embed = discord.Embed(
             title="📬 طلب جديد لشراء رتبة",
             description=(
@@ -104,5 +104,6 @@ class AdminApprovalView(View):
         embed.set_footer(text="تاريخ الطلب • ستُغلق القناة تلقائيًا بعد المعالجة")
 
         await channel.send(embed=embed, view=self)
+
 
 
