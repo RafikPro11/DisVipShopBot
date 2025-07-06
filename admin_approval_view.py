@@ -53,15 +53,15 @@ class AdminApprovalView(View):
     async def reject(self, interaction: discord.Interaction, button: Button):
         guild = interaction.guild
         member = guild.get_member(self.user_id)
-        
+
         embed = discord.Embed(
             title="🚫 تم رفض الطلب",
             description=f"تم رفض طلب شراء رتبة **{self.role_name}**.\nسيتم حذف القناة خلال 30 ثانية.",
             color=discord.Color.red()
         )
-        
+
         if member:
-            embed.set_footer(text=f"المستخدم: {member.display_name}")
+            embed.set_footer(text=f"المستخدم: {member.display_name}", icon_url=member.display_avatar.url)
 
         await interaction.channel.send(embed=embed)
         await self.send_log(guild, f"❌ تم رفض طلب {self.role_name} من المستخدم ID: {self.user_id}")
@@ -70,3 +70,4 @@ class AdminApprovalView(View):
         channel = guild.get_channel(self.channel_id)
         if channel:
             await channel.delete()
+
