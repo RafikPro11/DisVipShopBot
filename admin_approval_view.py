@@ -1,6 +1,7 @@
 import discord
 from discord.ui import View, Button
 import asyncio
+from datetime import datetime
 
 class AdminApprovalView(View):
     def __init__(self, role_name, user_id, channel_id, VIP_ROLES, send_log):
@@ -71,3 +72,15 @@ class AdminApprovalView(View):
         if channel:
             await channel.delete()
 
+    async def send_request_message(self, channel, member):
+        color = discord.Color.gold() if "VIP" in self.role_name else discord.Color.blue()
+        embed = discord.Embed(
+            title="📥 طلب شراء رتبة",
+            description=f"**العضو:** {member.mention}\n**الرتبة المطلوبة:** {self.role_name}\n\nيرجى من الإدارة اتخاذ الإجراء المناسب من خلال الأزرار أدناه.",
+            color=color,
+            timestamp=datetime.utcnow()
+        )
+        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_footer(text="تاريخ الطلب")
+
+        await channel.send(embed=embed, view=self)
