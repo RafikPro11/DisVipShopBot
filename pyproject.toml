@@ -1,10 +1,11 @@
 [project]
-name = "python-template"
-version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+name = "vip-shop-bot"
+version = "1.0.0"
+description = "بوت ديسكورد لشراء الرتب المدفوعة بإدارة ذكية."
+authors = ["rk11dz rafik88pro@gmail.com"]
 requires-python = ">=3.11"
 dependencies = [
     "discord-py>=2.5.2",
     "python-dotenv>=1.1.1",
+    "flask>=3.1.1",
 ]
